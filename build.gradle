@@ -1,0 +1,133 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url = "https://files.minecraftforge.net/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+
+
+version = "${mc_version}-" + getVersion()
+
+group = modGroup
+archivesBaseName = modBaseGroup
+
+sourceCompatibility = targetCompatibility = '1.8' 
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "${mc_version}-${forge_version}"
+    runDir = "run"
+
+    mappings = "${mc_mappings}"
+    replace 'GRADLE:VERSION', "${mc_version}"
+    
+    replace 'scala.actors.threadpool.Arrays', 'java.util.Arrays'
+
+    makeObfSourceJar = false
+}
+
+repositories{
+    maven {
+        name = "CoFH Maven"
+        url = "http://maven.covers1624.net"
+    }
+
+    maven{
+        name 'JEI'
+        url 'http://dvs1.progwml6.com/files/maven'
+    }
+
+    maven {
+        name = 'Waila'
+        url 'https://tehnut.info/maven'
+    }
+
+    maven {
+        name = "CurseForge"
+        url = "https://minecraft.curseforge.com/api/maven/"
+    }
+
+    maven{
+        name 'BASE'
+        url 'https://maven.blamejared.com'
+    }
+
+    maven {
+        name = 'Baubles'
+        url "https://maven.thiakil.com"
+    }
+
+    maven {
+        name 'Darkhax'
+        url 'https://maven.mcmoddev.com/'
+    }
+}
+
+dependencies {
+    // Libs
+    deobfCompile "com.teamacronymcoders.base:base:${mc_version}-${base_version}-SNAPSHOT.+"
+
+    // Ease-of-Use Tools:
+    deobfCompile "mezz.jei:jei_1.12.2:${jei_version}"
+    deobfCompile "mcp.mobius.waila:Hwyla:${hwyla_version}"
+    deobfCompile "com.azanor.baubles:Baubles:${baubles_version}"
+
+    // Addon Support
+    deobfCompile "vazkii.patchouli:Patchouli:${patchouli_version}"
+    deobfCompile "net.darkhax.bookshelf:Bookshelf-1.12.2:${bookshelf_version}"
+    deobfCompile "net.darkhax.gamestages:GameStages-1.12.2:${gamestages_version}"
+    deobfCompile "CraftTweaker2:CraftTweaker2-MC1120-Main:${crafttweaker_version}"
+    deobfCompile "CraftTweaker2:CraftTweaker2-API:${crafttweaker_version}"
+    deobfCompile "CraftTweaker2:ZenScript:${crafttweaker_version}"
+}
+
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+                
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    // copy everything else except the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+String getVersion() {
+    String version = "${modVersion}"
+
+    String branch = project.hasProperty("branch") ? project.branch : ""
+
+    if(branch != "") {
+        version += "-" + branch
+
+        String buildNumber = getBuildNumber()
+        if(buildNumber != "") {
+            version += "." + buildNumber
+        }
+    }
+
+    return version
+}
+
+static String getBuildNumber() {
+    String buildNumber = System.getenv("BUILD_NUMBER") != null ? System.getenv("BUILD_NUMBER") : ""
+    if(buildNumber == "") {
+        buildNumber = System.getenv("bamboo_buildNumber") != null ? "." + System.getenv("bamboo_buildNumber") : ""
+    }
+    return buildNumber
+}
